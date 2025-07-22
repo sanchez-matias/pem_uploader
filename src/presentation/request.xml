@@ -1,0 +1,26 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:dom="http://domain.presentacion.seti.osiris.arca.gov/">
+    <soapenv:Header/>
+    <soapenv:Body>
+     <dom:upload>
+<token>PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjxzc28gdmVyc2lvbj0iMi4wIj4NCjxpZCBzc
+mM9ImNuPW9zaXJpc3Rlc3QsIG91PVNER1NZVCwgbz1BRklQLCBjPUFSIiANCiAgICBkc3Q9ImNuPUF1dGhzZXJ2Z
+XIsIG91PURFU0VJTiwgbz1BRklQLCBjPUFSIiB1bmlxdWVfaWQ9IjgzNTg5NTA5NSIgZ2VuX3RpbWU9IjExNTMyNDY
+4ODIiIGV4cF90aW1lPSIxMTUzMjQ3NDgyIi8+DQo8b3BlcmF0aW9uIHR5cGU9ImxvZ2luIiB2YWx1ZT0iZ3JhbnRlZCI+
+DQo8bG9naW4gZW50aXR5PSIzMzY5MzQ1MDIzOSIgc3lzdGVtPSJzZXRpZGoiIHVpZD0iMjAyNDY2MzQzNjAiIGF1d
+GhtZXRob2Q9InBhc3NwaHJhc2UiIHJlZ21ldGhvZD0iMSI+DQo8cmVsYXRpb25zPg0KPHJlbGF0aW9uIGtleT0iMjcyMjI
+wMDYyMDciIHJlbHR5cGU9IjAxIi8+DQo8cmVsYXRpb24ga2V5PSIyMDA4NjA3NjM3NCIgcmVsdHlwZT0iMDEiLz4NCj
+xyZWxhdGlvbiBrZXk9IjMwOTk5OTk5OTk1IiByZWx0eXBlPSIwMSIvPg0KPHJlbGF0aW9uIGtleT0iMzA1NDY2ODk5Nz
+kiIHJlbHR5cGU9IjAxIi8+DQo8cmVsYXRpb24ga2V5PSIzMDYxNTkxNTU0NCIgcmVsdHlwZT0iMDEiLz4NCjwvcmVsY
+XRpb25zPg0KPC9sb2dpbj4NCjwvb3BlcmF0aW9uPg0KPC9zc28+DQoNCg==</token>
+
+<sign>mEESSK7yxOJnEYMAEQwVgZ0SmFUzcydV0an4h1HP/83Pg0goN5cLM34bPQovjhQTo8vxWdI9fw/u29iUl4+G
+YS8GHwUC1Pd6Nu4JXOHAWMWl5ZzoW3uhzNNbaJh2ZTBYM+K771NH+sosEdDPkYp+vufzddDP8pJ46wqL6Dq/cvE=</sign>
+    <representadoCuit>27222006207</representadoCuit>
+    <presentacion>
+     <presentacionDataHandler>cid:F5129.ac7bbcdfcb3cb65a4977eaff593795d6.zip</presentacionDataHandler>
+     <fileName>F5129.ac7bbcdfcb3cb65a4977eaff593795d6.zip</fileName>
+    </presentacion>
+   </dom:upload>
+  </soapenv:Body>
+</soapenv:Envelope>

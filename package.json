@@ -1,0 +1,24 @@
+{
+  "name": "pem_uploader",
+  "version": "1.0.0",
+  "description": "ARCA fiscal controller PEM file uploader",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "upload": "node src/app",
+    "dummy": "node src/app -d"
+  },
+  "keywords": [],
+  "author": "XRP",
+  "license": "ISC",
+  "dependencies": {
+    "@afipsdk/afip.js": "^1.1.3",
+    "axios": "^1.10.0",
+    "dotenv": "^17.2.0",
+    "env-var": "^7.5.0",
+    "node-forge": "^1.3.1",
+    "soap": "^1.1.12",
+    "strong-soap": "^4.1.14",
+    "yargs": "^17.7.2"
+  }
+}
