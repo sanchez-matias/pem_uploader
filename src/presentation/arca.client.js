@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Afip = require('@afipsdk/afip.js');
-const axios = require('axios');
 const path = require('path');
+const soap = require('strong-soap').soap;
 
 class ArcaClient {
 
@@ -66,41 +66,42 @@ class ArcaClient {
     }
 
     static async upload({ticket, filePath, cuit}) {
-        try {
-            const fileName = path.basename(filePath);
-            const mtomFile = fs.readFileSync(filePath);
-            const base64Zip = mtomFile.toString('base64');
+        const fileName = path.basename(filePath);
+        const file = fs.readFileSync(filePath);
+        const url = 'https://aws.afip.gov.ar/setiws/webservices/uploadPresentacionService?wsdl=uploadPresentacionServiceParent.wsdl';
 
+        const options = { 
+            forceMTOM: true,
+            mtom: true ,
+        };
 
-            const soapRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
- xmlns:dom="http://domain.presentacion.seti.osiris.arca.gov/">
-    <soapenv:Header/>
-    <soapenv:Body>
-     <dom:upload>
-<token>${ticket.token}</token>
-
-<sign>${ticket.sign}</sign>
-    <representadoCuit>${cuit}</representadoCuit>
-    <presentacion>
-     <presentacionDataHandler>${base64Zip}</presentacionDataHandler>
-     <fileName>${fileName}</fileName>
-    </presentacion>
-   </dom:upload>
-  </soapenv:Body>
-</soapenv:Envelope>`;
-
-            axios.post('https://awshomo.arca.gov.ar/setiws/webservices/uploadPresentacionService?wsdl', soapRequest, {
-                headers: {
-                    'Content-Type': 'text/xml',
-                    'SOAPAction': 'http://ar.gov.afip.dif.FVE1/uploadPresentacionService'
+        const data = {
+            token: ticket.token,
+            sign: ticket.sign,
+            representadoCuit: cuit,
+            fileName: fileName, // o 'archivo.xml.gz' si comprimís
+            presentacionDataHandler: {
+                value: file,
+                options: {
+                    contentType: 'application/octet-stream',
+                    include: true // <-- para usar xop:Include
                 }
-            })
-            .then(res => console.log('Exito'));
-    
+            },
+        };
 
-        } catch (error) {
-            console.error(`FALLO EN LA SUBIDA DE ARCHIVOS: ${error}`);
-        }
+        soap.createClient(url, options, (err, client) => {
+            if (err) return console.error('Error al crear cliente:', err);
+
+            const des = client.describe();
+            
+            const upload = client.xmlHandler.schemas["http://domain.presentacion.seti.osiris.afip.gov/"].complexTypes.upload;
+
+
+            // upload(data, (err, result, envelope, soapHeader) => {
+            //     if (err) return console.error(err);
+            //     console.log(`Exito: ${result}`);
+            // });
+        });
     }
 
 }

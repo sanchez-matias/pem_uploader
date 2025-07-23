@@ -10,5 +10,6 @@ async function main() {
 
     await Server.run({dummy, verbose, envs});
 
-    console.log('Fin del programa');
+    // console.log('Fin del programa');
+
 }
