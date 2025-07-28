@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Afip = require('@afipsdk/afip.js');
 const path = require('path');
-const soap = require('strong-soap').soap;
+const soap = require('soap');
 
 class ArcaClient {
 
@@ -30,77 +30,59 @@ class ArcaClient {
     }
 
     static async getWebServiceStatus() {
-        const url = 'https://aws.arca.gov.ar/setiws/webservices/uploadPresentacionService?wsdl';
-        const request = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"xmlns:dom="http://domain.presentacion.seti.osiris.arca.gov/">
-            <soapenv:Header/>
-            <soapenv:Body>
-                <dom:dummy/>
-            </soapenv:Body>
-        </soapenv:Envelope>`;
+        const url = path.join(__dirname, '../../wsdl/dummy.wsdl');
+        // let isServiceOk;
+        const isServiceOk = await fetch(url);
 
-        try {
-            const response = await fetch( url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'text/xml; charset=utf-8',
-                    // 'SOAPAction': `${namespaceSOAP}djprocessorcontribuyente_cf`
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('HTTP error!')
-            }
-
-            const responseText = await response.text();
-            console.log(response);
-
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(responseText, 'text/xml');
-
-            return xmlDoc;
-
-        } catch (error) {
-            console.log(`Error al llamar al servicio SOAP: ${error}`);
-            throw error;
-        }
+        return isServiceOk;
     }
 
     static async upload({ticket, filePath, cuit}) {
-        const fileName = path.basename(filePath);
+        const url = path.join(__dirname, '../../wsdl/uploadPresentacionService.wsdl');
         const file = fs.readFileSync(filePath);
-        const url = 'https://aws.afip.gov.ar/setiws/webservices/uploadPresentacionService?wsdl=uploadPresentacionServiceParent.wsdl';
+        const fileName = path.basename(filePath);
 
-        const options = { 
-            forceMTOM: true,
-            mtom: true ,
-        };
+        const clientOptions = {
+            parseReponseAttachments: true,
+        }
+        
+        soap.createClient(url, clientOptions, async(clientError, client) => {
+            if ( clientError ) return console.error(`Hubo un problema creando el cliente ${clientError}`);
 
-        const data = {
-            token: ticket.token,
-            sign: ticket.sign,
-            representadoCuit: cuit,
-            fileName: fileName, // o 'archivo.xml.gz' si comprimís
-            presentacionDataHandler: {
-                value: file,
-                options: {
-                    contentType: 'application/octet-stream',
-                    include: true // <-- para usar xop:Include
-                }
-            },
-        };
+            client.on('request', function (xml, eid) {
+               console.log('Solicitud SOAP enviada:\n', xml);
+            });
 
-        soap.createClient(url, options, (err, client) => {
-            if (err) return console.error('Error al crear cliente:', err);
+            const presentacion = {
+                presentacionDataHandler: `cid:${fileName}`,
+                fileName: fileName,
+            };
 
-            const des = client.describe();
-            
-            const upload = client.xmlHandler.schemas["http://domain.presentacion.seti.osiris.afip.gov/"].complexTypes.upload;
+            const args = {
+                token: ticket.token,
+                sign: ticket.sign,
+                representadoCuit: cuit,
+                presentacion: presentacion,
+            };
 
+            const uploadOptions = {
+                forceMTOM: true,
+                // timeout: 60000,
+                forceGzip: true,
+                attachments: [{
+                    mimetype: 'application/octet-stream',
+                    contentId: `cid:${fileName}`,
+                    name: fileName,
+                    body: file,
+                }],
+            };
 
-            // upload(data, (err, result, envelope, soapHeader) => {
-            //     if (err) return console.error(err);
-            //     console.log(`Exito: ${result}`);
-            // });
+            try {
+                const result = await client.uploadAsync(args, uploadOptions);
+                console.log(result);
+            } catch (error) {
+                console.log(error);
+            }
         });
     }
 

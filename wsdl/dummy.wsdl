@@ -1,0 +1,8 @@
+ <!-- Request dummy: -->
+ <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:dom="http://domain.presentacion.seti.osiris.arca.gov/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <dom:dummy/>
+    </soapenv:Body>
+ </soapenv:Envelope>
