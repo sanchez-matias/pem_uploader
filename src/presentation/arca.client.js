@@ -1,7 +1,8 @@
+const { soap } = require('strong-soap');
 const fs = require('fs');
 const Afip = require('@afipsdk/afip.js');
 const path = require('path');
-const soap = require('soap');
+const { randomUUID } = require('crypto');
 
 class ArcaClient {
 
@@ -41,20 +42,19 @@ class ArcaClient {
         const url = path.join(__dirname, '../../wsdl/uploadPresentacionService.wsdl');
         const file = fs.readFileSync(filePath);
         const fileName = path.basename(filePath);
+        const contentId = `${randomUUID()}@pymtom-xop`;
+
+        console.log(`El tamaño del archivo es de ${file.length}`);
 
         const clientOptions = {
-            parseReponseAttachments: true,
-        }
+            forceMTOM: true,
+        };
         
-        soap.createClient(url, clientOptions, async(clientError, client) => {
-            if ( clientError ) return console.error(`Hubo un problema creando el cliente ${clientError}`);
-
-            client.on('request', function (xml, eid) {
-               console.log('Solicitud SOAP enviada:\n', xml);
-            });
+        soap.createClient(url, clientOptions, (err, client) => {
+            if (err) return console.error('Error creando el cliente:', err);
 
             const presentacion = {
-                presentacionDataHandler: `cid:${fileName}`,
+                presentacionDataHandler: contentId,
                 fileName: fileName,
             };
 
@@ -65,24 +65,26 @@ class ArcaClient {
                 presentacion: presentacion,
             };
 
-            const uploadOptions = {
+            const options = {
+                attachments: [
+                    {
+                        mimetype: 'application/octet-stream',
+                        contentId: contentId,
+                        name: fileName,
+                        body: file,
+                    }
+                ],
                 forceMTOM: true,
-                // timeout: 60000,
-                forceGzip: true,
-                attachments: [{
-                    mimetype: 'application/octet-stream',
-                    contentId: `cid:${fileName}`,
-                    name: fileName,
-                    body: file,
-                }],
             };
 
-            try {
-                const result = await client.uploadAsync(args, uploadOptions);
-                console.log(result);
-            } catch (error) {
-                console.log(error);
-            }
+            const uploadPresentacion = client.upload.PresentacionProcessorMTOMImplPort.upload;
+
+            uploadPresentacion(args, function(err, result, envelope, soapHeader) {
+                if (err) return console.error('Error en upload:', err);
+                console.log('Transaccion Numero:', result);
+            },
+            options,
+            );
         });
     }
 

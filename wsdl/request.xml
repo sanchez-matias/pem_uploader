@@ -1,0 +1,15 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:dom="http://domain.presentacion.seti.osiris.arca.gov/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <dom:upload>
+<token>token</token>
+<sign>sign</sign>
+    <representadoCuit>27222006207</representadoCuit>
+    <presentacion>
+        <presentacionDataHandler>cid:F5129.ac7bbcdfcb3cb65a4977eaff593795d6.zip</presentacionDataHandler>
+        <fileName>F5129.ac7bbcdfcb3cb65a4977eaff593795d6.zip</fileName>
+    </presentacion>
+ </dom:upload>
+ </soapenv:Body>
+ </soapenv:Envelope>
