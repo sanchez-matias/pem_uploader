@@ -1,8 +1,8 @@
-const { soap } = require('strong-soap');
 const fs = require('fs');
 const Afip = require('@afipsdk/afip.js');
 const path = require('path');
-const { randomUUID } = require('crypto');
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 
 class ArcaClient {
 
@@ -39,53 +39,63 @@ class ArcaClient {
     }
 
     static async upload({ticket, filePath, cuit}) {
-        const url = path.join(__dirname, '../../wsdl/uploadPresentacionService.wsdl');
+        const url = 'https://aws.arca.gov.ar/setiws/webservices/uploadPresentacionService?wsdl';
         const file = fs.readFileSync(filePath);
+        const fileBase64 = file.toString('base64');
         const fileName = path.basename(filePath);
-        const contentId = `${randomUUID()}@pymtom-xop`;
 
-        console.log(`El tamaño del archivo es de ${file.length}`);
+        const boundary = `----=_Part_${uuidv4().replace(/-/g, '')}`;
+        const soapId = `<${uuidv4().replace(/-/g, '')}@jsmtom.com>`;
+        const attachmentId = `<${uuidv4().replace(/-/g, '')}@jsmtom.com>`;
 
-        const clientOptions = {
-            forceMTOM: true,
-        };
+        const soapMessage = `
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:dom="http://domain.presentacion.seti.osiris.arca.gov/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <dom:upload>
+<token>${ticket.token}</token>
+<sign>${ticket.sign}</sign>
+    <representadoCuit>${cuit}</representadoCuit>
+    <presentacion>
+        <presentacionDataHandler>cid:${attachmentId.slice(1, -1)}.pem</presentacionDataHandler>
+        <fileName>${fileName}</fileName>
+    </presentacion>
+ </dom:upload>
+ </soapenv:Body>
+ </soapenv:Envelope>`.trim();
+
+        const bodyMtom = [
+            `--${boundary}`,
+            `Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"`,
+            `Content-Transfer-Encoding: 8bit`,
+            `Content-ID: ${soapId}`,
+            '',
+            soapMessage,
+            `--${boundary}`,
+            `Content-Type: application/octet-stream`,
+            `Content-Transfer-Encoding: base64`,
+            `Content-ID: ${attachmentId}`,
+            `Content-Disposition: attachment; filename="${fileName}"`,
+            '',
+            fileBase64,
+            `--${boundary}--`,
+            ''
+        ].join('\r\n');
         
-        soap.createClient(url, clientOptions, (err, client) => {
-            if (err) return console.error('Error creando el cliente:', err);
+        const headers = {
+            'Content-Type': `multipart/related; type="application/xop+xml"; start="${soapId}"; start-info="application/soap+xml"; boundary="${boundary}"`,
+            'SOAPAction': 'https://aws.afip.gov.ar/setiws/webservices/uploadPresentacionService?wsdl=uploadPresentacionServiceParent.wsdl'
+        };
 
-            const presentacion = {
-                presentacionDataHandler: contentId,
-                fileName: fileName,
-            };
-
-            const args = {
-                token: ticket.token,
-                sign: ticket.sign,
-                representadoCuit: cuit,
-                presentacion: presentacion,
-            };
-
-            const options = {
-                attachments: [
-                    {
-                        mimetype: 'application/octet-stream',
-                        contentId: contentId,
-                        name: fileName,
-                        body: file,
-                    }
-                ],
-                forceMTOM: true,
-            };
-
-            const uploadPresentacion = client.upload.PresentacionProcessorMTOMImplPort.upload;
-
-            uploadPresentacion(args, function(err, result, envelope, soapHeader) {
-                if (err) return console.error('Error en upload:', err);
-                console.log('Transaccion Numero:', result);
-            },
-            options,
-            );
-        });
+        try {
+            const respuesta = await axios.post(url, bodyMtom, { headers: headers });
+            console.log('Respuesta del servicio:', respuesta.data);
+            return respuesta.data;
+        } catch (error) {
+            console.error('Error al enviar el archivo:', error.response ? error.response.data : error.message);
+            throw error;
+        }
     }
 
 }
