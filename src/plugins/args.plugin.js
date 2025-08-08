@@ -15,11 +15,11 @@ const args = yargs( hideBin(process.argv) )
     //     demandOption: true,
     //     describe: 'Path to the .pem or pem.bz2 file to upload',
     // })
-    .option('d', {
-        alias: 'dummy',
+    .option('p', {
+        alias: 'production',
         type: 'boolean',
         default: false,
-        describe: 'Calls dummy method',
+        describe: 'Initialize in production mode (default: false)',
     })
     .option('v', {
         alias: 'verbose',
@@ -29,9 +29,9 @@ const args = yargs( hideBin(process.argv) )
     })
     .check(( argv ) => {
 
-        ( argv.d )
-            ? console.log('Proyecto inicializado en modo PRUEBAS')
-            : console.log('Proyecto inicializado en modo PRODUCCION. Toda acción será definitiva.');
+        ( argv.p )
+            ? console.log('Proyecto inicializado en modo PRODUCCION. Toda acción será definitiva.')
+            : console.log('Proyecto inicializado en modo PRUEBAS');
 
         return true;
     })
