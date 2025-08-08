@@ -6,9 +6,14 @@ const { Server } = require("./presentation/server");
 })();
 
 async function main() {
-    const { d: dummy, v: verbose } = args;
+    const { p: production, v: verbose } = args;
 
-    await Server.run({dummy, verbose, envs});
+    const certificates = {
+        cert: ( production ) ? envs.CERT : envs.CERT_TESTING,
+        key: ( production ) ? envs.KEY : envs.KEY_TESTING,
+    }
+
+    await Server.run({production, certificates, envs});
 
     // console.log('Fin del programa');
 
